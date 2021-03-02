@@ -6,10 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.fragment_photo_gallery.*
-import sk.lubostar.bignerdguide.photogallery.api.FlickrFetchr
 
 class PhotoGalleryFragment : Fragment() {
     companion object{
@@ -18,13 +17,7 @@ class PhotoGalleryFragment : Fragment() {
         fun newInstance() = PhotoGalleryFragment()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val flickrLiveData: LiveData<List<GalleryItem>> = FlickrFetchr().fetchPhotos()
-        flickrLiveData.observe(this, { galleryItems ->
-            Log.d(TAG, "Response received $galleryItems")
-        })
-    }
+    private val photoGalleryViewModel: PhotoGalleryViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View =
@@ -33,5 +26,9 @@ class PhotoGalleryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         photo_recycler_view.layoutManager = GridLayoutManager(context, 3)
+
+        photoGalleryViewModel.galleryItemLiveData.observe(viewLifecycleOwner, { galleryItems ->
+            Log.d(TAG, "Have gallery items from ViewModel $galleryItems")
+        })
     }
 }
