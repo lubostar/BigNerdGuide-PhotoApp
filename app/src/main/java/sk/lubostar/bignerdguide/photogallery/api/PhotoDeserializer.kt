@@ -4,7 +4,7 @@ import android.util.Log
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import sk.lubostar.bignerdguide.photogallery.GalleryItem
+import sk.lubostar.bignerdguide.photogallery.model.GalleryItem
 import java.lang.reflect.Type
 
 class PhotoDeserializer : JsonDeserializer<PhotoResponse> {
