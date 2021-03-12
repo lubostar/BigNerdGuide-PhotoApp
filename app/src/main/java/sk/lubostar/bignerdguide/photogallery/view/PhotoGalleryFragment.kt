@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -31,13 +32,16 @@ class PhotoGalleryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        photo_recycler_view.layoutManager = GridLayoutManager(context, 3)
         photo_recycler_view.adapter = adapter
+        photo_recycler_view.afterMeasured {
+            val columnCount = width / 360
+            photo_recycler_view.layoutManager = GridLayoutManager(context, columnCount)
+        }
 
         photoGalleryViewModel.getPagedListLiveData().observe(viewLifecycleOwner, { galleryItems ->
-                Log.d(TAG, "Have gallery items from ViewModel $galleryItems")
-                adapter.submitList(galleryItems)
-            })
+            Log.d(TAG, "Have gallery items from ViewModel $galleryItems")
+            adapter.submitList(galleryItems)
+        })
     }
 
     private class PhotoHolder(itemTextView: TextView) : RecyclerView.ViewHolder(itemTextView) {
@@ -56,5 +60,16 @@ class PhotoGalleryFragment : Fragment() {
                 holder.bindTitle(it.title)
             }
         }
+    }
+
+    private inline fun RecyclerView.afterMeasured(crossinline f: View.() -> Unit) {
+        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (measuredWidth > 0 && measuredHeight > 0) {
+                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    f()
+                }
+            }
+        })
     }
 }
