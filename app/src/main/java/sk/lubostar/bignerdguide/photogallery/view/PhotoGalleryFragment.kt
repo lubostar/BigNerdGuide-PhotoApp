@@ -1,12 +1,16 @@
 package sk.lubostar.bignerdguide.photogallery.view
 
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.paging.PagedListAdapter
@@ -15,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_photo_gallery.*
 import sk.lubostar.bignerdguide.photogallery.viewmodel.PhotoGalleryViewModel
 import sk.lubostar.bignerdguide.photogallery.R
+import sk.lubostar.bignerdguide.photogallery.api.ThumbnailDownloader
 import sk.lubostar.bignerdguide.photogallery.model.GalleryItem
 
 class PhotoGalleryFragment : Fragment() {
@@ -26,6 +31,13 @@ class PhotoGalleryFragment : Fragment() {
 
     private val adapter = PhotoAdapter()
     private val photoGalleryViewModel: PhotoGalleryViewModel by viewModels()
+    private val thumbnailDownloader: ThumbnailDownloader<PhotoHolder> = ThumbnailDownloader()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        retainInstance = true
+        lifecycle.addObserver(thumbnailDownloader)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)
     : View = inflater.inflate(R.layout.fragment_photo_gallery, container, false)
@@ -44,21 +56,31 @@ class PhotoGalleryFragment : Fragment() {
         })
     }
 
-    private class PhotoHolder(itemTextView: TextView) : RecyclerView.ViewHolder(itemTextView) {
-        val bindTitle: (CharSequence) -> Unit = itemTextView::setText
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycle.removeObserver(thumbnailDownloader)
     }
 
-    private class PhotoAdapter: PagedListAdapter<GalleryItem, PhotoHolder>(GalleryItem.DIFF_CALLBACK) {
+    private class PhotoHolder(rootView: ImageView) : RecyclerView.ViewHolder(rootView) {
+//        val bindTitle: (CharSequence) -> Unit = itemTextView::setText
+        val bindImage: (Drawable) -> Unit = rootView::setImageDrawable
+    }
+
+    private inner class PhotoAdapter: PagedListAdapter<GalleryItem, PhotoHolder>(GalleryItem.DIFF_CALLBACK) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoHolder {
-            val textView = TextView(parent.context)
-            return PhotoHolder(textView)
+            val root = layoutInflater.inflate(R.layout.list_item_gallery,
+                parent, false) as ImageView
+            return PhotoHolder(root)
         }
 
         override fun onBindViewHolder(holder: PhotoHolder, position: Int) {
             getItem(position)?.let {
-                holder.bindTitle(it.title)
+                thumbnailDownloader.queueThumbnail(holder, it.url)
             }
+            val placeholder = ContextCompat.getDrawable(requireContext(), R.drawable.bill_up_close)
+                ?: ColorDrawable()
+            holder.bindImage(placeholder)
         }
     }
 
