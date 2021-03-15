@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class ThumbnailDownloader<in T>(private val responseHandler: Handler,
                                 private val onThumbnailDownloaded: (T, Bitmap) -> Unit)
-    : HandlerThread(TAG), LifecycleObserver {
+    : HandlerThread(TAG){
 
     companion object{
         private const val TAG = "ThumbnailDownloader"
@@ -24,6 +24,32 @@ class ThumbnailDownloader<in T>(private val responseHandler: Handler,
     private val requestMap = ConcurrentHashMap<T, String>()
     private val flickrFetchr = FlickrFetchr()
     private var hasQuit = false
+
+    val fragmentLifecycleObserver: LifecycleObserver = object : LifecycleObserver {
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+        fun setup() {
+            Log.i(TAG, "Starting background thread")
+            start()
+            looper
+        }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        fun tearDown() {
+            Log.i(TAG, "Destroying background thread")
+            quit()
+        }
+    }
+
+    val viewLifecycleObserver: LifecycleObserver = object : LifecycleObserver {
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        fun clearQueue() {
+            Log.i(TAG, "Clearing all requests from queue")
+            requestHandler.removeMessages(MESSAGE_DOWNLOAD)
+            requestMap.clear()
+        }
+    }
 
     @SuppressLint("HandlerLeak")
     override fun onLooperPrepared() {
@@ -58,19 +84,6 @@ class ThumbnailDownloader<in T>(private val responseHandler: Handler,
         Log.i(TAG, "Got a URL: $url")
         requestMap[target] = url
         requestHandler.obtainMessage(MESSAGE_DOWNLOAD, target).sendToTarget()
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    fun setup() {
-        Log.i(TAG, "Starting background thread")
-        start()
-        looper
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    fun tearDown() {
-        Log.i(TAG, "Destroying background thread")
-        quit()
     }
 
     override fun quit(): Boolean {

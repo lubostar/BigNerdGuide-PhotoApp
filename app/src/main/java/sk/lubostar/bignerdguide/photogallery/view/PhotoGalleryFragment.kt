@@ -44,11 +44,14 @@ class PhotoGalleryFragment : Fragment() {
             photoHolder.bindImage(drawable)
         }
 
-        lifecycle.addObserver(thumbnailDownloader)
+        lifecycle.addObserver(thumbnailDownloader.fragmentLifecycleObserver)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?)
-    : View = inflater.inflate(R.layout.fragment_photo_gallery, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View {
+        viewLifecycleOwner.lifecycle.addObserver(thumbnailDownloader.viewLifecycleObserver)
+        return inflater.inflate(R.layout.fragment_photo_gallery, container, false)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -64,9 +67,14 @@ class PhotoGalleryFragment : Fragment() {
         })
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        lifecycle.removeObserver(thumbnailDownloader.viewLifecycleObserver)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        lifecycle.removeObserver(thumbnailDownloader)
+        lifecycle.removeObserver(thumbnailDownloader.fragmentLifecycleObserver)
     }
 
     private class PhotoHolder(rootView: ImageView) : RecyclerView.ViewHolder(rootView) {
