@@ -1,15 +1,16 @@
 package sk.lubostar.bignerdguide.photogallery.view
 
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -31,11 +32,18 @@ class PhotoGalleryFragment : Fragment() {
 
     private val adapter = PhotoAdapter()
     private val photoGalleryViewModel: PhotoGalleryViewModel by viewModels()
-    private val thumbnailDownloader: ThumbnailDownloader<PhotoHolder> = ThumbnailDownloader()
+    private lateinit var thumbnailDownloader: ThumbnailDownloader<PhotoHolder>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
+
+        val responseHandler = Handler()
+        thumbnailDownloader = ThumbnailDownloader(responseHandler) { photoHolder, bitmap ->
+            val drawable = BitmapDrawable(resources, bitmap)
+            photoHolder.bindImage(drawable)
+        }
+
         lifecycle.addObserver(thumbnailDownloader)
     }
 
