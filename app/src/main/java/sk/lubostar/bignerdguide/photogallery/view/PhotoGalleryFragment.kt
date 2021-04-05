@@ -14,6 +14,7 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -48,10 +49,8 @@ class PhotoGalleryFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        viewLifecycleOwner.lifecycle.addObserver(thumbnailDownloader.viewLifecycleObserver)
-        return inflater.inflate(R.layout.fragment_photo_gallery, container, false)
-    }
+                              savedInstanceState: Bundle?): View
+    = inflater.inflate(R.layout.fragment_photo_gallery, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -65,11 +64,14 @@ class PhotoGalleryFragment : Fragment() {
             Log.d(TAG, "Have gallery items from ViewModel $galleryItems")
             adapter.submitList(galleryItems)
         })
-    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        lifecycle.removeObserver(thumbnailDownloader.viewLifecycleObserver)
+        viewLifecycleOwnerLiveData.observe(viewLifecycleOwner, Observer {
+            if (it == null) {
+                lifecycle.removeObserver(thumbnailDownloader.viewLifecycleObserver)
+            } else {
+                viewLifecycleOwner.lifecycle.addObserver(thumbnailDownloader.viewLifecycleObserver)
+            }
+        })
     }
 
     override fun onDestroy() {
