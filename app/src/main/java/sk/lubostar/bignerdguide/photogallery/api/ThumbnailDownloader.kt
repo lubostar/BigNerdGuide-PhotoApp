@@ -12,6 +12,7 @@ import androidx.lifecycle.OnLifecycleEvent
 import java.util.concurrent.ConcurrentHashMap
 
 class ThumbnailDownloader<in T>(private val responseHandler: Handler,
+                                private val lifecycle: Lifecycle,
                                 private val onThumbnailDownloaded: (T, Bitmap) -> Unit)
     : HandlerThread(TAG){
 
@@ -37,6 +38,7 @@ class ThumbnailDownloader<in T>(private val responseHandler: Handler,
         @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         fun tearDown() {
             Log.i(TAG, "Destroying background thread")
+            lifecycle.removeObserver(this)
             quit()
         }
     }
@@ -46,6 +48,7 @@ class ThumbnailDownloader<in T>(private val responseHandler: Handler,
         @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         fun clearQueue() {
             Log.i(TAG, "Clearing all requests from queue")
+            lifecycle.removeObserver(this)
             requestHandler.removeMessages(MESSAGE_DOWNLOAD)
             requestMap.clear()
         }

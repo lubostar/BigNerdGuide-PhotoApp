@@ -14,7 +14,6 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -40,7 +39,7 @@ class PhotoGalleryFragment : Fragment() {
         retainInstance = true
 
         val responseHandler = Handler()
-        thumbnailDownloader = ThumbnailDownloader(responseHandler) { photoHolder, bitmap ->
+        thumbnailDownloader = ThumbnailDownloader(responseHandler, lifecycle) { photoHolder, bitmap ->
             val drawable = BitmapDrawable(resources, bitmap)
             photoHolder.bindImage(drawable)
         }
@@ -65,18 +64,11 @@ class PhotoGalleryFragment : Fragment() {
             adapter.submitList(galleryItems)
         })
 
-        viewLifecycleOwnerLiveData.observe(viewLifecycleOwner, Observer {
-            if (it == null) {
-                lifecycle.removeObserver(thumbnailDownloader.viewLifecycleObserver)
-            } else {
+        viewLifecycleOwnerLiveData.observe(viewLifecycleOwner, {
+            if (it != null) {
                 viewLifecycleOwner.lifecycle.addObserver(thumbnailDownloader.viewLifecycleObserver)
             }
         })
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        lifecycle.removeObserver(thumbnailDownloader.fragmentLifecycleObserver)
     }
 
     private class PhotoHolder(rootView: ImageView) : RecyclerView.ViewHolder(rootView) {
