@@ -2,26 +2,20 @@ package sk.lubostar.bignerdguide.photogallery.view
 
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import android.widget.ImageView
+import android.view.*
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_photo_gallery.*
 import sk.lubostar.bignerdguide.photogallery.viewmodel.PhotoGalleryViewModel
 import sk.lubostar.bignerdguide.photogallery.R
 import sk.lubostar.bignerdguide.photogallery.api.ThumbnailDownloader
-import sk.lubostar.bignerdguide.photogallery.model.GalleryItem
 
 class PhotoGalleryFragment : Fragment() {
     companion object {
@@ -30,9 +24,9 @@ class PhotoGalleryFragment : Fragment() {
         fun newInstance() = PhotoGalleryFragment()
     }
 
-    private val adapter = PhotoAdapter()
+    private lateinit var adapter : PagedPhotoAdapter
     private val photoGalleryViewModel: PhotoGalleryViewModel by viewModels()
-    private lateinit var thumbnailDownloader: ThumbnailDownloader<PhotoHolder>
+    private lateinit var thumbnailDownloader: ThumbnailDownloader<PagedPhotoAdapter.PhotoHolder>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +38,13 @@ class PhotoGalleryFragment : Fragment() {
             photoHolder.bindImage(drawable)
         }
 
+        val placeholder = ContextCompat.getDrawable(requireContext(), R.drawable.bill_up_close)
+            ?: ColorDrawable()
+        adapter = PagedPhotoAdapter(thumbnailDownloader, placeholder)
+
         lifecycle.addObserver(thumbnailDownloader.fragmentLifecycleObserver)
+
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -71,26 +71,32 @@ class PhotoGalleryFragment : Fragment() {
         })
     }
 
-    private class PhotoHolder(rootView: ImageView) : RecyclerView.ViewHolder(rootView) {
-//        val bindTitle: (CharSequence) -> Unit = itemTextView::setText
-        val bindImage: (Drawable) -> Unit = rootView::setImageDrawable
-    }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_photo_gallery, menu)
+        
+        val searchItem: MenuItem = menu.findItem(R.id.menu_item_search)
+        val searchView = searchItem.actionView as SearchView
 
-    private inner class PhotoAdapter: PagedListAdapter<GalleryItem, PhotoHolder>(GalleryItem.DIFF_CALLBACK) {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoHolder {
-            val root = layoutInflater.inflate(R.layout.list_item_gallery,
-                parent, false) as ImageView
-            return PhotoHolder(root)
-        }
-
-        override fun onBindViewHolder(holder: PhotoHolder, position: Int) {
-            getItem(position)?.let {
-                thumbnailDownloader.queueThumbnail(holder, it.url)
+        searchView.apply {
+            setOnCloseListener {
+                photoGalleryViewModel.fetchPhotos("")
+                true
             }
-            val placeholder = ContextCompat.getDrawable(requireContext(), R.drawable.bill_up_close)
-                ?: ColorDrawable()
-            holder.bindImage(placeholder)
+
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+
+                override fun onQueryTextSubmit(query: String): Boolean {
+                    Log.d(TAG, "Query text submit: $query")
+                    photoGalleryViewModel.fetchPhotos(query)
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    Log.d(TAG, "Query text change: $query")
+                    return false
+                }
+            })
         }
     }
 
