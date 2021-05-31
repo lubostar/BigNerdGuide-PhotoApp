@@ -4,17 +4,16 @@ import androidx.paging.DataSource
 
 class PhotoDataSourceFactory : DataSource.Factory<Long, GalleryItem>() {
 
-    private lateinit var photoDataSource: PhotoDataSource
+    private var photoDataSource: PhotoDataSource? = null
 
     private var searchQuery: String = ""
 
-    override fun create(): DataSource<Long, GalleryItem> {
-        photoDataSource = PhotoDataSource(searchQuery)
-        return photoDataSource
-    }
+    override fun create() = PhotoDataSource(searchQuery)
 
     fun setSearchQuery(query: String) {
         searchQuery = query
-        photoDataSource.invalidate()
+        photoDataSource?.apply {
+            invalidate()
+        }
     }
 }
