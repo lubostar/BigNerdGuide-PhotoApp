@@ -84,6 +84,10 @@ class PhotoGalleryFragment : Fragment() {
                 true
             }
 
+            setOnSearchClickListener {
+                searchView.setQuery(photoGalleryViewModel.searchTerm, false)
+            }
+
             setOnQueryTextListener(object : SearchView.OnQueryTextListener{
 
                 override fun onQueryTextSubmit(query: String): Boolean {

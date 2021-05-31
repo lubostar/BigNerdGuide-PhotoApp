@@ -16,6 +16,8 @@ class PhotoGalleryViewModel(private val app: Application) : AndroidViewModel(app
 
     private val mutableSearchTerm = MutableLiveData<String>()
 
+    val searchTerm: String get() = mutableSearchTerm.value ?: ""
+
     init {
         val config = PagedList.Config.Builder()
             .setEnablePlaceholders(true)
