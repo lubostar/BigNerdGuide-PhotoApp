@@ -12,10 +12,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import kotlinx.android.synthetic.main.fragment_photo_gallery.*
 import sk.lubostar.bignerdguide.photogallery.viewmodel.PhotoGalleryViewModel
 import sk.lubostar.bignerdguide.photogallery.R
 import sk.lubostar.bignerdguide.photogallery.api.ThumbnailDownloader
+import sk.lubostar.bignerdguide.photogallery.worker.PollWorker
 
 class PhotoGalleryFragment : Fragment() {
     companion object {
@@ -45,6 +50,14 @@ class PhotoGalleryFragment : Fragment() {
         lifecycle.addObserver(thumbnailDownloader.fragmentLifecycleObserver)
 
         setHasOptionsMenu(true)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .build()
+        val workRequest = OneTimeWorkRequest.Builder(PollWorker::class.java)
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance().enqueue(workRequest)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
