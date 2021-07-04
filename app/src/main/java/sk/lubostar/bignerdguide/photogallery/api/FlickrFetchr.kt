@@ -49,6 +49,10 @@ class FlickrFetchr {
         handlePhotosCall(fetchPhotos, function)
     }
 
+    fun fetchPhotosRequest() = flickrApi.fetchPhotos()
+
+    fun searchPhotosRequest(query: String) = flickrApi.searchPhotos(query)
+
     @WorkerThread
     fun fetchPhoto(url: String): Bitmap? {
         val response: Response<ResponseBody> = flickrApi.fetchUrlBytes(url).execute()

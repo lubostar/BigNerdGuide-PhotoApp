@@ -4,8 +4,11 @@ import android.content.Context
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import sk.lubostar.bignerdguide.photogallery.QueryPreferences
+import sk.lubostar.bignerdguide.photogallery.api.FlickrFetchr
+import sk.lubostar.bignerdguide.photogallery.model.GalleryItem
 
-class PollWorker(val context: Context, workerParams: WorkerParameters) :
+class PollWorker(private val context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
 
     companion object{
@@ -13,7 +16,24 @@ class PollWorker(val context: Context, workerParams: WorkerParameters) :
     }
 
     override fun doWork(): Result {
-        Log.i(TAG, "Work request triggered");
+        val query = QueryPreferences.getStoredQuery(context)
+        val lastResId = QueryPreferences.getLastResultId(context)
+        val items: List<GalleryItem> = if (query.isEmpty()) {
+            FlickrFetchr().fetchPhotosRequest().execute().body()?.galleryItems
+        } else {
+            FlickrFetchr().searchPhotosRequest(query).execute().body()?.galleryItems
+        } ?: emptyList()
+
+        if (items.isEmpty()) return Result.success()
+
+        val resultId = items.first().id
+        if (resultId == lastResId) {
+            Log.i(TAG, "Got an old result id: $resultId")
+        } else {
+            Log.i(TAG, "Got a new result id: $resultId")
+            QueryPreferences.setLastResultId(context, resultId)
+        }
+
         return Result.success();
     }
 }
