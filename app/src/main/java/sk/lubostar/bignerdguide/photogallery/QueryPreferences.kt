@@ -6,6 +6,7 @@ import androidx.core.content.edit
 
 private const val PREF_SEARCH_QUERY = "searchQuery"
 private const val PREF_LAST_RESULT_ID = "lastResId"
+private const val PREF_IS_POLLING = "polling"
 
 object QueryPreferences {
 
@@ -29,6 +30,17 @@ object QueryPreferences {
     fun setLastResultId(context: Context, lastResId: String) {
         PreferenceManager.getDefaultSharedPreferences(context).edit {
             putString(PREF_LAST_RESULT_ID, lastResId)
+        }
+    }
+
+    fun isPolling(context: Context): Boolean {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getBoolean(PREF_IS_POLLING, false)
+    }
+
+    fun setPolling(context: Context, value: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit {
+            putBoolean(PREF_IS_POLLING, value)
         }
     }
 }
