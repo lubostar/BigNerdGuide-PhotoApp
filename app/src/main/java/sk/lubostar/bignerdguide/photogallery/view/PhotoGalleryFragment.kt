@@ -21,7 +21,7 @@ import sk.lubostar.bignerdguide.photogallery.api.ThumbnailDownloader
 import sk.lubostar.bignerdguide.photogallery.worker.PollWorker
 import java.util.concurrent.TimeUnit
 
-class PhotoGalleryFragment : Fragment() {
+class PhotoGalleryFragment : VisibleFragment() {
     companion object {
         private const val TAG = "PhotoGalleryFragment"
         private const val POLL_WORK = "PW"

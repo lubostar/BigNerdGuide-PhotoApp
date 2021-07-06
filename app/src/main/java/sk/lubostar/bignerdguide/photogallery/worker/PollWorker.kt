@@ -1,7 +1,9 @@
 package sk.lubostar.bignerdguide.photogallery.worker
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,6 +21,12 @@ class PollWorker(private val context: Context, workerParams: WorkerParameters) :
     companion object{
         private const val TAG = "PollWorker"
         private const val NOTIFICATION_ID = "pollNotif"
+
+        const val ACTION_SHOW_NOTIFICATION = "sk.lubostar.bignerdguide.photogallery.SHOW_NOTIFICATION"
+        const val PERMISSION_PRIVATE = "sk.lubostar.bignerdguide.photogallery.PRIVATE"
+
+         const val REQUEST_CODE = "REQUEST_CODE"
+        const val NOTIFICATION = "NOTIFICATION"
     }
 
     override fun doWork(): Result {
@@ -52,10 +60,19 @@ class PollWorker(private val context: Context, workerParams: WorkerParameters) :
                 .setAutoCancel(true)
                 .build()
 
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(0, notification)
+            showBackgroundNotification(0, notification)
         }
 
-        return Result.success();
+        return Result.success()
+    }
+
+    private fun showBackgroundNotification(requestCode: Int, notification: Notification) {
+        val intent = Intent(ACTION_SHOW_NOTIFICATION).apply {
+            putExtra(REQUEST_CODE, requestCode)
+            putExtra(NOTIFICATION, notification)
+        }
+
+        context.sendOrderedBroadcast(intent, PERMISSION_PRIVATE)
+
     }
 }
