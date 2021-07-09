@@ -24,7 +24,8 @@ class PhotoDeserializer : JsonDeserializer<PhotoResponse> {
             for (element in photosArray) {
                 Log.d(TAG, "parsing $element")
                 with(element.asJsonObject) {
-                    val galleryItem = GalleryItem(get("title").asString, get("id").asString, get("url_s").asString)
+                    val galleryItem = GalleryItem(get("title").asString, get("id").asString,
+                        get("url_s").asString, get("owner").asString)
                     list.add(galleryItem)
                 }
             }
