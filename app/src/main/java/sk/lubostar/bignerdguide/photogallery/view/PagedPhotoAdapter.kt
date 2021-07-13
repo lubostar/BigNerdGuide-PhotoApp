@@ -40,7 +40,7 @@ class PagedPhotoAdapter(private val thumbnailDownloader: ThumbnailDownloader<Pho
         private lateinit var galleryItem: GalleryItem
 
         private val clickListener: View.OnClickListener = View.OnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, galleryItem.photoPageUri)
+            val intent = PhotoPageActivity.newIntent(it.context, galleryItem.photoPageUri)
             startActivity(it.context, intent, null)
         }
 
