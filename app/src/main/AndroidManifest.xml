@@ -23,7 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.PhotoPageActivity"/>
+        <activity android:name=".view.PhotoPageActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
         <receiver android:name=".worker.NotificationReceiver"
             android:permission="sk.lubostar.bignerdguide.photogallery.PRIVATE"
             android:exported="false">
