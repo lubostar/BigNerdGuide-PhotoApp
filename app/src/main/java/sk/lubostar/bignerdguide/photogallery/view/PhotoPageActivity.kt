@@ -29,4 +29,15 @@ class PhotoPageActivity: AppCompatActivity() {
             }
         }
     }
+
+    override fun onBackPressed() {
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (currentFragment != null && currentFragment is PhotoPageFragment) {
+            currentFragment.onBackPressed {
+                super.onBackPressed()
+            }
+        } else {
+            super.onBackPressed()
+        }
+    }
 }

@@ -62,4 +62,11 @@ class PhotoPageFragment: VisibleFragment() {
         }
     }
 
+    fun onBackPressed(callback : () -> Unit) {
+        if (web_view.canGoBack()) {
+            web_view.goBack()
+        } else {
+            callback.invoke()
+        }
+    }
 }
